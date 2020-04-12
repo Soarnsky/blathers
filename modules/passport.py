@@ -51,8 +51,7 @@ def create_passport_card(user):
     embed.set_thumbnail(url=user.avatar_url_as(format="png"))
     embed.add_field(name="__**ACNH INFO**__", value=acnh_info)
     embed.add_field(name="__**SQUAD INFO**__",
-                    value="""**nickname:** {}
-                        **joined:** {}"""
+                    value="""**nickname:** {}\n**joined:** {}"""
                     .format(user.nick, user.joined_at.__format__('%d %b %y')))
     if passport['fruit'] or passport['friendcode']:
         embed.set_footer(text="{}".format(passport['friendcode']), icon_url=FRUIT[passport['fruit']])
