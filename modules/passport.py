@@ -47,7 +47,7 @@ def create_passport_card(user):
     embed.add_field(name="__**SQUAD INFO**__",
                     value="""**nickname:** {}
                         **joined:** {}"""
-                    .format(user.nick, user.joined_at.__format__('%A %d %B %Y at %H:%M')))
+                    .format(user.nick, user.joined_at.__format__('%d %b %y')))
     if passport['fruit'] or passport['friendcode']:
         embed.set_footer(text="{}".format(passport['friendcode']), icon_url=FRUIT[passport['fruit']])
     return embed
