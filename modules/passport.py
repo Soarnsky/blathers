@@ -38,7 +38,9 @@ def create_passport_card(user):
         acnh_info = "{}**island:** {}\n".format(acnh_info, passport['island'])
 
     passport_color = discord.Color.purple()   #default color
+    print("hello")
     if passport['color']:
+        print("how'd you get here")
         passport_color = passport['color']    #change to new color if selected
 
     embed = discord.Embed(
