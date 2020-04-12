@@ -42,7 +42,6 @@ def create_passport_card(user):
 
     if passport['color']:
         passport_color = COLOR[passport['color']]  # change to new color if selected
-    print("start embed")
     embed = discord.Embed(
         color=passport_color,
         title="{}'s Passport".format(user.display_name)
@@ -55,7 +54,6 @@ def create_passport_card(user):
                     .format(user.nick, user.joined_at.__format__('%d %b %y')))
     if passport['fruit'] or passport['friendcode']:
         embed.set_footer(text="{}".format(passport['friendcode']), icon_url=FRUIT[passport['fruit']])
-    print("end embed")
     return embed
 
 
@@ -74,7 +72,6 @@ def initialize_user_passport(user):
         c.execute("DELETE FROM PASSPORT WHERE user = ?", (user.id,))
         c.execute("INSERT INTO PASSPORT (user) VALUES (?)", (user.id,))
         conn.commit()
-        print("user passport initialized")
 
 
 def set_ign(user, name):
@@ -128,7 +125,6 @@ def set_friend_code(user, fc):
         return hyphened_fc
 
 
-# new
 def normalize_color(color):
     color = color.lower()
     for c in COLOR:
@@ -137,7 +133,6 @@ def normalize_color(color):
     return ""
 
 
-# new
 def set_color(user, color):
     norm_color = normalize_color(color)
     if not norm_color:
@@ -164,7 +159,6 @@ def initialize_passport():
                   color TEXT,
                   user TEXT NOT NULL)""")
             conn.commit()
-            print("end table creation")
 
 
 class Passport(commands.Cog):
@@ -184,11 +178,8 @@ class Passport(commands.Cog):
         with sqlite3.connect('passports.db') as conn:
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
-            print("hello2")
             c.execute("SELECT * FROM PASSPORT WHERE user = ?", (user.id,))
-            print("yadoa")
             if not c.fetchall():
-                print("initializing")
                 initialize_user_passport(user)
 
             if ctx.invoked_subcommand is None:
