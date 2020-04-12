@@ -45,7 +45,6 @@ def create_passport_card(user):
     print("embedding")
     embed = discord.Embed(
         color=passport_color,
-        print("success")
         title="{}'s Passport".format(user.display_name)
     )
     print("somethings wrong? maybe not")
