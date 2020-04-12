@@ -151,9 +151,7 @@ def set_color(user, color):
 def initialize_passport():
     with sqlite3.connect('passports.db') as conn:
         c = conn.cursor()
-        print("hello2")
         c.execute("SELECT NAME FROM sqlite_master WHERE type = \"table\" AND name = \"PASSPORT\"")
-        print("start table creation")
         if not c.fetchall():
             c.execute("""CREATE TABLE IF NOT EXISTS PASSPORT
                   (id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -184,7 +182,7 @@ class Passport(commands.Cog):
         with sqlite3.connect('passports.db') as conn:
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
-            print("hello1")
+            print("hello2")
             c.execute("SELECT * FROM PASSPORT WHERE user = ?", (user.id,))
             print("yadoa")
             if not c.fetchall():
