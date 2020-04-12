@@ -38,19 +38,16 @@ def create_passport_card(user):
     if passport['island']:
         acnh_info = "{}**island:** {}\n".format(acnh_info, passport['island'])
 
-    passport_color = discord.Color.purple()  # default color
-    if passport['color']:
-        passport_color = passport['color']  # change to new color if selected
-
     embed = discord.Embed(
-        color=passport_color,
+        color=discord.Color.purple(),
         title="{}'s Passport".format(user.display_name)
     )
     embed.set_thumbnail(url=user.avatar_url_as(format="png"))
     embed.add_field(name="__**ACNH INFO**__", value=acnh_info)
     embed.add_field(name="__**SQUAD INFO**__",
-                    value="""**nickname:** {}\n**joined:** {}"""
-                    .format(user.nick, user.joined_at.__format__('%d %b %y')))
+                    value="""**nickname:** {}
+                        **joined:** {}"""
+                    .format(user.nick, user.joined_at.__format__('%A %d %B %Y at %H:%M')))
     if passport['fruit'] or passport['friendcode']:
         embed.set_footer(text="{}".format(passport['friendcode']), icon_url=FRUIT[passport['fruit']])
     return embed
@@ -73,6 +70,7 @@ def initialize_user_passport(user):
         conn.commit()
 
 
+# added
 def set_ign(user, name):
     with sqlite3.connect('passports.db') as conn:
         c = conn.cursor()
@@ -80,6 +78,7 @@ def set_ign(user, name):
         conn.commit()
 
 
+# added
 def set_island(user, name):
     with sqlite3.connect('passports.db') as conn:
         c = conn.cursor()
@@ -87,6 +86,7 @@ def set_island(user, name):
         conn.commit()
 
 
+# added
 def normalize_fruit(fruit):
     fruit = fruit.lower()
     for f in FRUIT:
@@ -95,6 +95,7 @@ def normalize_fruit(fruit):
     return ""
 
 
+# added
 def set_fruit(user, fruit):
     norm_fruit = normalize_fruit(fruit)
     if not norm_fruit:
@@ -107,10 +108,12 @@ def set_fruit(user, fruit):
         return True
 
 
+# added
 def normalize_fc(fc):
     return re.sub(r'\D', "", fc)
 
 
+# added
 def set_friend_code(user, fc):
     norm_fc = normalize_fc(fc)
     if len(norm_fc) != 12:
@@ -124,48 +127,25 @@ def set_friend_code(user, fc):
         return hyphened_fc
 
 
-# new
-def normalize_color(color):
-    color = color.lower()
-    for c in COLOR:
-        if c in color:
-            return c
-    return ""
-
-
-# new
-def set_color(user, color):
-    norm_color = normalize_color(color)
-    if not norm_color:
-        return False
-    else:
-        with sqlite3.connect('passports.db') as conn:
-            c = conn.cursor()
-            c.execute("UPDATE PASSPORT SET color = ? WHERE user = ?", (norm_color, user.id))
-            conn.commit()
-        return True
-
-
 def initialize_passport():
     with sqlite3.connect('passports.db') as conn:
         c = conn.cursor()
         c.execute("SELECT NAME FROM sqlite_master WHERE type = \"table\" AND name = \"PASSPORT\"")
         if not c.fetchall():
             c.execute("""CREATE TABLE IF NOT EXISTS PASSPORT
-                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                 ign TEXT,
-                 island TEXT,
-                 fruit TEXT,
-                 friendcode TEXT,
-                 color TEXT,
-                 user TEXT NOT NULL)""")
+                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  ign TEXT,
+                  island TEXT,
+                  fruit TEXT,
+                  friendcode TEXT,
+                  user TEXT NOT NULL)""")
             conn.commit()
 
 
 class Passport(commands.Cog):
     """
- Player passports collection
- """
+  Player passports collection
+  """
 
     def __init__(self, client, config):
         self.client = client
@@ -215,9 +195,8 @@ class Passport(commands.Cog):
     async def fruit(self, ctx, fruit):
         """Set your native fruit"""
         user = ctx.message.author
-        formatted_fruit = set_fruit(user, fruit)
-        if formatted_fruit:
-            await ctx.send("{}, your native fruit has been set to {}".format(user.mention, formatted_fruit))
+        if set_fruit(user, fruit):
+            await ctx.send("{}, your native fruit has been set to {}".format(user.mention, fruit))
         else:
             await ctx.send("Sorry {}, {} is not a valid fruit.".format(user.mention, fruit))
 
@@ -230,16 +209,6 @@ class Passport(commands.Cog):
             await ctx.send("{}, your friend code has been set to {}".format(user.mention, hyphened_fc))
         else:
             await ctx.send("Ah, {}. it seems '{}' is not a valid code.".format(user.mention, fc))
-
-    @passport.command(pass_context=True)
-    async def color(self, ctx, color):
-        """Set your passport color [blue, gold, green, magenta, orange, purple, red, teal]"""
-        user = ctx.message.author
-        formatted_color = set_color(user, color)
-        if formatted_color:
-            await ctx.send("{}, your passport is now {}".format(user.mention, formatted_color))
-        else:
-            await ctx.send("Ah, {}. it seems '{}' is not a valid color.".format(user.mention, color))
 
 
 def setup(client):
