@@ -48,7 +48,8 @@ def create_passport_card(user):
         title="{}'s Passport".format(user.display_name)
     )
     embed.set_thumbnail(url=user.avatar_url_as(format="png"))
-    embed.add_field(name="__**ACNH INFO**__", value=acnh_info)
+    if acnh_info:
+        embed.add_field(name="__**ACNH INFO**__", value=acnh_info)
     embed.add_field(name="__**SQUAD INFO**__",
                     value="""**nickname:** {}\n**joined:** {}"""
                     .format(user.nick, user.joined_at.__format__('%d %b %y')))
@@ -73,6 +74,7 @@ def initialize_user_passport(user):
         c.execute("DELETE FROM PASSPORT WHERE user = ?", (user.id,))
         c.execute("INSERT INTO PASSPORT (user) VALUES (?)", (user.id,))
         conn.commit()
+        print("user passport initialized")
 
 
 def set_ign(user, name):
