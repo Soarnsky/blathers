@@ -99,13 +99,13 @@ def normalize_fruit(fruit):
 def set_fruit(user, fruit):
     norm_fruit = normalize_fruit(fruit)
     if not norm_fruit:
-        return False
+        return ""
     else:
         with sqlite3.connect('passports.db') as conn:
             c = conn.cursor()
             c.execute("UPDATE PASSPORT SET fruit = ? WHERE user = ?", (norm_fruit, user.id))
             conn.commit()
-        return True
+        return norm_fruit
 
 
 def normalize_fc(fc):
@@ -214,8 +214,9 @@ class Passport(commands.Cog):
     async def fruit(self, ctx, fruit):
         """Set your native fruit"""
         user = ctx.message.author
-        if set_fruit(user, fruit):
-            await ctx.send("{}, your native fruit has been set to {}".format(user.mention, fruit))
+        formatted_fruit = set_fruit(user, fruit)
+        if formatted_fruit:
+            await ctx.send("{}, your native fruit has been set to {}".format(user.mention, formatted_fruit))
         else:
             await ctx.send("Sorry {}, {} is not a valid fruit.".format(user.mention, fruit))
 
