@@ -42,7 +42,7 @@ def create_passport_card(user):
     if passport['color']:
         print("how'd you get here")
         passport_color = passport['color']    #change to new color if selected
-
+    print("no color set")
     embed = discord.Embed(
         color=passport_color,
         title="{}'s Passport".format(user.display_name)
