@@ -43,6 +43,7 @@ def create_passport_card(user):
     if passport['color']:
         print("changing color")
         passport_color = passport['color']  # change to new color if selected
+        print("changed")
     print("embedding")
     embed = discord.Embed(
         color=passport_color,
@@ -140,13 +141,13 @@ def normalize_color(color):
 def set_color(user, color):
     norm_color = normalize_color(color)
     if not norm_color:
-        return False
+        return ""
     else:
         with sqlite3.connect('passports.db') as conn:
             c = conn.cursor()
             c.execute("UPDATE PASSPORT SET color = ? WHERE user = ?", (norm_color, user.id))
             conn.commit()
-        return True
+        return norm_color
 
 
 def initialize_passport():
