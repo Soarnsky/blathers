@@ -13,7 +13,7 @@ FRUIT = {
 }
 
 COLOR = {
-    "blue": 149502,
+    "blue": discord.Color.blue(),
     "gold": discord.Color.gold(),
     "green": discord.Color.green(),
     "magenta": discord.Color.magenta(),
@@ -42,7 +42,7 @@ def create_passport_card(user):
     print("hello")
     if passport['color']:
         print("changing color")
-        passport_color = passport['color']  # change to new color if selected
+        passport_color = COLOR[passport['color']]  # change to new color if selected
         print("changed")
     print("embedding")
     embed = discord.Embed(
