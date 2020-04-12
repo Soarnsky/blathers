@@ -23,7 +23,6 @@ COLOR = {
     "teal": discord.Color.teal()
 }
 
-
 def create_passport_card(user):
     """
   Get information about you, or a specified user.
@@ -38,11 +37,11 @@ def create_passport_card(user):
     if passport['island']:
         acnh_info = "{}**island:** {}\n".format(acnh_info, passport['island'])
 
-    passport_color = discord.Color.purple()  # default color
+    passport_color = discord.Color.purple()   #default color
     print("hello")
     if passport['color']:
         print("changing color")
-        passport_color = passport['color']  # change to new color if selected
+        passport_color = passport['color']    #change to new color if selected
     print("embedding")
     embed = discord.Embed(
         color=passport_color,
@@ -76,12 +75,12 @@ def initialize_user_passport(user):
         conn.commit()
 
 
+
 def set_ign(user, name):
     with sqlite3.connect('passports.db') as conn:
         c = conn.cursor()
         c.execute("UPDATE PASSPORT SET ign = ? WHERE user = ?", (name, user.id))
         conn.commit()
-
 
 def set_island(user, name):
     with sqlite3.connect('passports.db') as conn:
@@ -89,14 +88,12 @@ def set_island(user, name):
         c.execute("UPDATE PASSPORT SET island = ? WHERE user = ?", (name, user.id))
         conn.commit()
 
-
 def normalize_fruit(fruit):
     fruit = fruit.lower()
     for f in FRUIT:
         if f in fruit:
             return f
     return ""
-
 
 def set_fruit(user, fruit):
     norm_fruit = normalize_fruit(fruit)
@@ -109,10 +106,8 @@ def set_fruit(user, fruit):
             conn.commit()
         return True
 
-
 def normalize_fc(fc):
     return re.sub(r'\D', "", fc)
-
 
 def set_friend_code(user, fc):
     norm_fc = normalize_fc(fc)
@@ -126,8 +121,7 @@ def set_friend_code(user, fc):
             conn.commit()
         return hyphened_fc
 
-
-# new
+#new
 def normalize_color(color):
     color = color.lower()
     for c in COLOR:
@@ -135,8 +129,7 @@ def normalize_color(color):
             return c
     return ""
 
-
-# new
+#new
 def set_color(user, color):
     norm_color = normalize_color(color)
     if not norm_color:
@@ -147,7 +140,6 @@ def set_color(user, color):
             c.execute("UPDATE PASSPORT SET color = ? WHERE user = ?", (norm_color, user.id))
             conn.commit()
         return True
-
 
 def initialize_passport():
     with sqlite3.connect('passports.db') as conn:
@@ -163,7 +155,6 @@ def initialize_passport():
                  color TEXT,
                  user TEXT NOT NULL)""")
             conn.commit()
-
 
 class Passport(commands.Cog):
     """
