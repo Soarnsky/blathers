@@ -39,17 +39,14 @@ def create_passport_card(user):
         acnh_info = "{}**island:** {}\n".format(acnh_info, passport['island'])
 
     passport_color = discord.Color.purple()  # default color
-    print("hello")
+
     if passport['color']:
-        print("changing color")
         passport_color = COLOR[passport['color']]  # change to new color if selected
-        print("changed")
-    print("embedding")
+    print("start embed")
     embed = discord.Embed(
         color=passport_color,
         title="{}'s Passport".format(user.display_name)
     )
-    print("somethings wrong? maybe not")
     embed.set_thumbnail(url=user.avatar_url_as(format="png"))
     embed.add_field(name="__**ACNH INFO**__", value=acnh_info)
     embed.add_field(name="__**SQUAD INFO**__",
@@ -57,6 +54,7 @@ def create_passport_card(user):
                     .format(user.nick, user.joined_at.__format__('%d %b %y')))
     if passport['fruit'] or passport['friendcode']:
         embed.set_footer(text="{}".format(passport['friendcode']), icon_url=FRUIT[passport['fruit']])
+    print("end embed")
     return embed
 
 
