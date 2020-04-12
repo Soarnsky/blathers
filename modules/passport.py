@@ -23,7 +23,6 @@ COLOR = {
     "teal": discord.Color.teal()
 }
 
-
 def create_passport_card(user):
     """
   Get information about you, or a specified user.
@@ -38,8 +37,12 @@ def create_passport_card(user):
     if passport['island']:
         acnh_info = "{}**island:** {}\n".format(acnh_info, passport['island'])
 
+    passport_color = discord.Color.purple()   #default color
+    if passport['color']:
+        passport_color = passport['color']    #change to new color if selected
+
     embed = discord.Embed(
-        color=discord.Color.purple(),
+        color=passport_color,
         title="{}'s Passport".format(user.display_name)
     )
     embed.set_thumbnail(url=user.avatar_url_as(format="png"))
@@ -138,6 +141,7 @@ def initialize_passport():
                   island TEXT,
                   fruit TEXT,
                   friendcode TEXT,
+                  color TEXT,
                   user TEXT NOT NULL)""")
             conn.commit()
 
