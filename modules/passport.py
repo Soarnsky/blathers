@@ -31,29 +31,33 @@ def create_passport_card(user):
   `user`: The user who you want information about. Can be an ID, mention or name.
   """
 
-    passport = get_passport(user)
     acnh_info = ""
-    if passport['ign']:
-        acnh_info = "{}**ign:** {}\n".format(acnh_info, passport['ign'])
-    if passport['island']:
-        acnh_info = "{}**island:** {}\n".format(acnh_info, passport['island'])
+    passport = get_passport(user)
 
-    passport_color = discord.Color.purple()  # default color
-
-    if passport['color']:
-        passport_color = COLOR[passport['color']]  # change to new color if selected
     embed = discord.Embed(
-        color=passport_color,
+        color=discord.Color.purple(),
         title="{}'s Passport".format(user.display_name)
     )
+
+    if passport:
+        if passport['ign']:
+            acnh_info = "{}**ign:** {}\n".format(acnh_info, passport['ign'])
+        if passport['island']:
+            acnh_info = "{}**island:** {}\n".format(acnh_info, passport['island'])
+
+        if passport['color']:
+            embed.color = COLOR[passport['color']]  # change to new color if selected
+
+        if passport['fruit'] or passport['friendcode']:
+            embed.set_footer(text="{}".format(passport['friendcode']), icon_url=FRUIT[passport['fruit']])
+
     embed.set_thumbnail(url=user.avatar_url_as(format="png"))
     if acnh_info:
         embed.add_field(name="__**ACNH INFO**__", value=acnh_info)
     embed.add_field(name="__**SQUAD INFO**__",
                     value="""**name:** {}\n**joined:** {}"""
                     .format(user.display_name, user.joined_at.__format__('%d %b %y')))
-    if passport['fruit'] or passport['friendcode']:
-        embed.set_footer(text="{}".format(passport['friendcode']), icon_url=FRUIT[passport['fruit']])
+
     return embed
 
 
