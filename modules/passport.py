@@ -41,22 +41,21 @@ def create_passport_card(user):
 
     if passport:
         if passport['ign']:
-            acnh_info = "{}**ign:** {}\n".format(acnh_info, passport['ign'])
+            acnh_info = f"{acnh_info}**ign:** {passport['ign']}\n"
         if passport['island']:
-            acnh_info = "{}**island:** {}\n".format(acnh_info, passport['island'])
+            acnh_info = f"{acnh_info}**island:** {passport['island']}\n"
 
         if passport['color']:
             embed.color = COLOR[passport['color']]  # change to new color if selected
 
         if passport['fruit'] or passport['friendcode']:
-            embed.set_footer(text="{}".format(passport['friendcode']), icon_url=FRUIT[passport['fruit']])
+            embed.set_footer(text=passport['friendcode'], icon_url=FRUIT[passport['fruit']])
 
     embed.set_thumbnail(url=user.avatar_url_as(format="png"))
     if acnh_info:
         embed.add_field(name="__**ACNH INFO**__", value=acnh_info)
     embed.add_field(name="__**SQUAD INFO**__",
-                    value="""**name:** {}\n**joined:** {}"""
-                    .format(user.display_name, user.joined_at.__format__('%d %b %y')))
+                    value=f"**name:** {user.display_name}\n**joined:** {user.joined_at.__format__('%d %b %y')}")
 
     return embed
 
@@ -121,7 +120,7 @@ def set_friend_code(user, fc):
     if len(norm_fc) != 12:
         return ""
     else:
-        hyphened_fc = "SW-{}-{}-{}".format(norm_fc[0:4], norm_fc[4:8], norm_fc[8:12])
+        hyphened_fc = f"SW-{norm_fc[0:4]}-{norm_fc[4:8]}-{norm_fc[8:12]}"
         with sqlite3.connect('passports.db') as conn:
             c = conn.cursor()
             c.execute("UPDATE PASSPORT SET friendcode = ? WHERE user = ?", (hyphened_fc, user.id))
@@ -205,14 +204,14 @@ class Passport(commands.Cog):
         """Set your ign"""
         user = ctx.message.author
         set_ign(user, name)
-        await ctx.send("{}, your ign has been set to {}".format(user.mention, name))
+        await ctx.send(f"{user.mention}, your ign has been set to {name}")
 
     @passport.command(pass_context=True)
     async def island(self, ctx, *, name):
         """Set your island name"""
         user = ctx.message.author
         set_island(user, name)
-        await ctx.send("{}, your residency has been set to {}".format(user.mention, name))
+        await ctx.send(f"{user.mention}, your residency has been set to {name}")
 
     @passport.command(pass_context=True)
     async def fruit(self, ctx, fruit):
@@ -220,9 +219,9 @@ class Passport(commands.Cog):
         user = ctx.message.author
         formatted_fruit = set_fruit(user, fruit)
         if formatted_fruit:
-            await ctx.send("{}, your native fruit has been set to {}".format(user.mention, formatted_fruit))
+            await ctx.send(f"{user.mention}, your native fruit has been set to {formatted_fruit}")
         else:
-            await ctx.send("Sorry {}, {} is not a valid fruit.".format(user.mention, fruit))
+            await ctx.send(f"Sorry {user.mention}, {fruit} is not a valid fruit.")
 
     @passport.command(pass_context=True)
     async def fc(self, ctx, fc):
@@ -230,9 +229,9 @@ class Passport(commands.Cog):
         user = ctx.message.author
         hyphened_fc = set_friend_code(user, fc)
         if hyphened_fc:
-            await ctx.send("{}, your friend code has been set to {}".format(user.mention, hyphened_fc))
+            await ctx.send(f"{user.mention}, your friend code has been set to {hyphened_fc}")
         else:
-            await ctx.send("Ah, {}. it seems '{}' is not a valid code.".format(user.mention, fc))
+            await ctx.send(f"Ah, {user.mention}. it seems '{fc}' is not a valid code.")
 
     @passport.command(pass_context=True)
     async def color(self, ctx, color):
@@ -240,9 +239,9 @@ class Passport(commands.Cog):
         user = ctx.message.author
         formatted_color = set_color(user, color)
         if formatted_color:
-            await ctx.send("{}, your passport is now {}".format(user.mention, formatted_color))
+            await ctx.send(f"{user.mention}, your passport is now {formatted_color}")
         else:
-            await ctx.send("Ah, {}. it seems '{}' is not a valid color.".format(user.mention, color))
+            await ctx.send(f"Ah, {user.mention}. it seems '{color}' is not a valid color.")
 
 
 def setup(client):
