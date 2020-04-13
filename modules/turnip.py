@@ -60,7 +60,7 @@ def pretty_print_turnips(user):
         if key == 'user':
             continue
         if result[key]:
-            message = "{}  - `{}: {}`\n".format(message, key, result[key])
+            message = f"{message}  - `{key}: {result[key]}`\n"
 
     return message
 
@@ -72,7 +72,7 @@ def set_turnip_price(user, day, time, price):
         return False
     with sqlite3.connect('turnips.db') as conn:
         c = conn.cursor()
-        c.execute("UPDATE TURNIPS SET {}_{} = ? WHERE user = ?".format(day, time), (price, user.id))
+        c.execute(f"UPDATE TURNIPS SET {day}_{time} = ? WHERE user = ?", (price, user.id))
         conn.commit()
         return True
 
@@ -132,14 +132,14 @@ class Turnip(commands.Cog):
             patterns = get_patterns(user)
             if patterns:
                 p = patterns[-1]
-                if p["week_max"] < p["week_min"]:
-                    message = "{}\nNo patterns match your data, please check the values.\n*Note: Predictions are " \
-                              "unavailable for your first week.*".format(message)
+                if p['week_max'] < p['week_min']:
+                    message = f"{message}\nNo patterns match your data, please check the values.\n*Note: Predictions " \
+                              f"are unavailable for your first week.* "
                 else:
-                    message = "{}\n\n**Best Possible Price: {}**\n{}:```".format(message, p["week_max"], p["pattern_description"])
+                    message = f"{message}\n\n**Best Possible Price: {p['week_max']}**\n{p['pattern_description']}:```"
                     day = 0
                     time = 0
-                    for half_day in p["prices"]:
+                    for half_day in p['prices']:
                         weekday = DAYS[day]
                         daytime = TIME[time % 2]
                         if time % 2 == 1:
@@ -147,9 +147,9 @@ class Turnip(commands.Cog):
                         time += 1
                         if half_day["min"] == half_day["max"]:
                             continue
-                        message = "{}\n  {} {} - {}..{}".format(message, weekday, daytime, half_day["min"], half_day["max"])
-                    message = "{}```".format(message)
-            await ctx.send("{}, your stalk market data:\n{}".format(user.mention, message))
+                        message = f"{message}\n  {weekday} {daytime} - {half_day['min']}..{half_day['max']}"
+                    message = f"{message}```"
+            await ctx.send(f"{user.mention}, your stalk market data:\n{message}")
 
     @turnip.command(pass_context=True)
     async def bp(self, ctx, bp):
@@ -159,17 +159,16 @@ class Turnip(commands.Cog):
             c = conn.cursor()
             c.execute("UPDATE TURNIPS SET base_price = ? WHERE user = ?", (bp, user.id))
             conn.commit()
-            await ctx.send("{}, your Sunday Daisy Mae base price updated to D${}".format(user.mention, bp))
+            await ctx.send(f"{user.mention}, your Sunday Daisy Mae base price updated to D${bp}")
 
     @turnip.command(pass_context=True)
     async def set(self, ctx, day, time, price):
         """Set your nookling sell prices for each half day"""
         user = ctx.message.author
         if set_turnip_price(user, day, time, price):
-            await ctx.send(
-                "{}, your {}_{} price set to {}".format(user.mention, normalize_day(day), normalize_time(time), price))
+            await ctx.send(f"{user.mention}, your {normalize_day(day)}_{normalize_time(time)} price set to {price}")
         else:
-            await ctx.send("{}, invalid date/time.".format(user.mention))
+            await ctx.send(f"{user.mention}, invalid date/time.")
 
 
 def setup(client):

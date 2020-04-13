@@ -230,12 +230,11 @@ class Fossil(commands.Cog):
                     await ctx.send("Hooooo... WHO?! {}! Looks like you haven't donated any fossils... "
                                    "(.fossil add <fossil>)".format(user.mention))
                 else:
-                    missing = " ".join(["`{}`".format(item) for item in result['missing']])
+                    missing = " ".join([f"`{item}`" for item in result['missing']])
                     if len(result['owned']) == len(FOSSILS):
-                        await ctx.send("{} Owned: ALL fossils ({})".format(user.mention, len(result['owned'])))
+                        await ctx.send(f"{user.mention} Owned: ALL fossils ({len(result['owned'])}")
                     else:
-                        await ctx.send(
-                            "{} Owned: {} fossils. Missing: {}".format(user.mention, len(result['owned']), missing))
+                        await ctx.send(f"{user.mention} Owned: {len(result['owned'])} fossils. Missing: {missing}")
 
     @fossil.command(pass_context=True)
     async def add(self, ctx, *, fossils):
@@ -257,24 +256,24 @@ class Fossil(commands.Cog):
             else:
                 invalid_list.append(fossil)
 
-        ft_fossils = " ".join(["`{}`".format(f) for f in ft_list])
-        collection_fossils = " ".join(["`{}`".format(f) for f in collection_list])
-        invalid_fossils = " ".join(["`{}`".format(f) for f in invalid_list])
+        ft_fossils = " ".join([f"`{f}`" for f in ft_list])
+        collection_fossils = " ".join([f"`{f}`" for f in collection_list])
+        invalid_fossils = " ".join([f"`{f}`" for f in invalid_list])
 
         message = ""
         valid = ""
         if collection_fossils:
-            valid = "{}  - Collection: {}\n".format(valid, collection_fossils)
+            valid = f"{valid}  - Collection: {collection_fossils}\n"
         if ft_fossils:
-            valid = "{}  - For Trade: {}\n".format(valid, ft_fossils)
+            valid = f"{valid}  - For Trade: {ft_fossils}\n"
         if valid:
-            message = "{}, the following have been **added**:\n{}".format(user.mention, valid)
+            message = f"{user.mention}, the following have been **added**:\n{valid}"
 
         invalid = ""
         if invalid_fossils:
-            invalid = "{}  - Invalid: {}\n".format(invalid, invalid_fossils)
+            invalid = f"{invalid}  - Invalid: {invalid_fossils}\n"
         if invalid:
-            message = "{}, please double check these:\n{}".format(user.mention, invalid)
+            message = f"{user.mention}, please double check these:\n{invalid}"
         await ctx.send(message)
 
     @fossil.command(pass_context=True)
@@ -282,7 +281,7 @@ class Fossil(commands.Cog):
         """Adds all fossils to your collection"""
         user = ctx.message.author
         initialize_user_collection(user, 1)
-        await ctx.send("Inconceivable, {}! You have donated every single fossil there is!".format(user.mention))
+        await ctx.send(f"Inconceivable, {user.mention}! You have donated every single fossil there is!")
 
     @fossil.command(pass_context=True)
     async def rm(self, ctx, *, fossils):
@@ -307,27 +306,27 @@ class Fossil(commands.Cog):
             else:
                 invalid_list.append(fossil)
 
-        ft_fossils = " ".join(["`{}`".format(f) for f in ft_list])
-        collection_fossils = " ".join(["`{}`".format(f) for f in collection_list])
-        invalid_fossils = " ".join(["`{}`".format(f) for f in invalid_list])
-        none_list = " ".join(["`{}`".format(f) for f in none_list])
+        ft_fossils = " ".join([f"`{f}`" for f in ft_list])
+        collection_fossils = " ".join([f"`{f}`" for f in collection_list])
+        invalid_fossils = " ".join([f"`{f}`" for f in invalid_list])
+        none_list = " ".join([f"`{f}`" for f in none_list])
 
         message = ""
         valid = ""
         if collection_fossils:
-            valid = "{}  - Collection: {}\n".format(valid, collection_fossils)
+            valid = f"{valid}  - Collection: {collection_fossils}\n"
         if ft_fossils:
-            valid = "{}  - For Trade: {}\n".format(valid, ft_fossils)
+            valid = f"{valid}  - For Trade: {ft_fossils}\n"
         if valid:
-            message = "{}, the following have been **removed**:\n{}".format(user.mention, valid)
+            message = f"{user.mention}, the following have been **removed**:\n{valid}"
 
         invalid = ""
         if invalid_fossils:
-            invalid = "{}  - Invalid: {}\n".format(invalid, invalid_fossils)
+            invalid = f"{invalid}  - Invalid: {invalid_fossils}\n"
         if none_list:
-            invalid = "{}  - None: {}\n".format(invalid, none_list)
+            invalid = f"{invalid}  - None: {none_list}\n"
         if invalid:
-            message = "{}, please double check these:\n{}".format(user.mention, invalid)
+            message = f"{user.mention}, please double check these:\n{invalid}"
         await ctx.send(message)
 
     @fossil.command(pass_context=True)
@@ -335,7 +334,7 @@ class Fossil(commands.Cog):
         """Use this command to reset your collection."""
         user = ctx.message.author
         initialize_user_collection(user, 0)
-        await ctx.send("Hooooo... WHO?! {}! Where did all the fossils go???".format(user.mention))
+        await ctx.send(f"Hooooo... WHO?! {user.mention}! Where did all the fossils go???")
 
     @fossil.command(pass_context=True)
     async def lf(self, ctx):
@@ -350,15 +349,15 @@ class Fossil(commands.Cog):
                 c.execute("SELECT user FROM FOR_TRADE WHERE fossil = ?", (fossil,))
                 result = c.fetchall()
                 if result:
-                    users = ", ".join(["<@{}>".format(row['user']) for row in result])
+                    users = ", ".join([f"<@{row['user']}>" for row in result])
                     fossils[fossil] = users
         message = ""
         for ft, users in fossils.items():
-            message = "{}  - `{}`: {}\n".format(message, ft, users)
+            message = f"{message}  - `{ft}`: {users}\n"
         if message:
-            await ctx.send("{}, send these residents a hoot for fossils you need!\n\n{}".format(user.mention, message))
+            await ctx.send(f"{user.mention}, send these residents a hoot for fossils you need!\n\n{message}")
         else:
-            await ctx.send("{}, none of the fossils you need are available for trade.".format(user.mention))
+            await ctx.send(f"{user.mention}, none of the fossils you need are available for trade.")
 
     @fossil.command(pass_context=True)
     async def ft(self, ctx):
@@ -370,17 +369,17 @@ class Fossil(commands.Cog):
             c.execute("SELECT quantity, fossil FROM FOR_TRADE WHERE user = ?", (user.id,))
             result = c.fetchall()
             if result:
-                fossils = "".join(["  - `{}` **x{}**\n".format(row['fossil'], row['quantity']) for row in result])
-                await ctx.send("{}, these are your extra fossils:\n\n {}".format(user.mention, fossils))
+                fossils = "".join([f"  - `{row['fossil']}` **x{row['quantity']}**\n" for row in result])
+                await ctx.send(f"{user.mention}, these are your extra fossils:\n\n {fossils}")
             else:
-                await ctx.send("{}, you have no extra fossils listed for trade".format(user.mention))
+                await ctx.send(f"{user.mention}, you have no extra fossils listed for trade")
 
     @fossil.command(pass_context=True)
     async def list(self, ctx):
         """List of all fossils."""
         user = ctx.message.author
-        fossils = " ".join(["`{}`".format(fossil) for fossil in FOSSILS])
-        await ctx.send("{}, here is the current list of fossils.\n{}".format(user.mention, fossils))
+        fossils = " ".join([f"`{fossil}`" for fossil in FOSSILS])
+        await ctx.send(f"{user.mention}, here is the current list of fossils.\n{fossils}")
 
 
 def setup(client):
