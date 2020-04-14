@@ -88,17 +88,27 @@ SORT_ALPHABETICAL = """ORDER BY
                                 ELSE fossil 
                             END"""
 
+
 def levenshtein_distance(str1, str2):
     l = Levenshtein.distance(str1, str2)
     m = max(len(str1), len(str2))
-    return (1 - l/m) * 100
+    return (1 - l / m) * 100
 
 
 def normalize_fossil(fossil):
     norm_fossil = fossil.lower().translate(str.maketrans('', '', string.punctuation))
-    for f in FOSSILS:
-        if levenshtein_distance(f, norm_fossil) > MATCHING_THRESHOLD:
-            return f
+    highest_score = 0
+    best_match = ""
+    if norm_fossil not in FOSSILS:
+        for f in FOSSILS:
+            score = levenshtein_distance(f, norm_fossil)
+            if score > highest_score:
+                highest_score = score
+                best_match = f
+
+    if highest_score > MATCHING_THRESHOLD:
+        return best_match
+
     return norm_fossil
 
 
@@ -251,7 +261,7 @@ class Fossil(commands.Cog):
                 else:
                     missing = " ".join([f"`{item}`" for item in result['missing']])
                     if len(result['owned']) == len(FOSSILS):
-                        await ctx.send(f"{user.mention} Owned: ALL fossils ({len(result['owned'])}")
+                        await ctx.send(f"{user.mention} Owned: ALL fossils ({len(result['owned'])})")
                     else:
                         await ctx.send(f"{user.mention} Owned: {len(result['owned'])} fossils. Missing: {missing}")
 
