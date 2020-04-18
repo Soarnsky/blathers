@@ -1,8 +1,11 @@
 import string
+import Levenshtein
 
 import discord
 from discord.ext import commands
 import sqlite3
+
+MATCHING_THRESHOLD = 75
 
 FOSSILS = ["acanthostega",
            "amber",
@@ -78,9 +81,35 @@ FOSSILS = ["acanthostega",
            "tricera torso",
            "trilobite"]
 
+SORT_ALPHABETICAL = """ORDER BY
+                            CASE 
+                                WHEN (fossil like 'left %') THEN SUBSTR(fossil, 6)
+                                WHEN (fossil like 'right %') THEN SUBSTR(fossil, 7)
+                                ELSE fossil 
+                            END"""
+
+
+def levenshtein_distance(str1, str2):
+    l = Levenshtein.distance(str1, str2)
+    m = max(len(str1), len(str2))
+    return (1 - l / m) * 100
+
 
 def normalize_fossil(fossil):
-    return fossil.lower().translate(str.maketrans('', '', string.punctuation))
+    norm_fossil = fossil.lower().translate(str.maketrans('', '', string.punctuation))
+    highest_score = 0
+    best_match = ""
+    if norm_fossil not in FOSSILS:
+        for f in FOSSILS:
+            score = levenshtein_distance(f, norm_fossil)
+            if score > highest_score:
+                highest_score = score
+                best_match = f
+
+    if highest_score > MATCHING_THRESHOLD:
+        return best_match
+
+    return norm_fossil
 
 
 def is_fossil(fossil):
@@ -124,9 +153,9 @@ def get_collection(user):
     with sqlite3.connect('fossils.db') as conn:
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
-        c.execute("SELECT fossil FROM COLLECTION WHERE owned = 1 AND user = ?", (user.id,))
+        c.execute(f"SELECT fossil FROM COLLECTION WHERE owned = 1 AND user = ? {SORT_ALPHABETICAL}", (user.id,))
         owned = [row['fossil'] for row in c.fetchall()]
-        c.execute("SELECT fossil FROM COLLECTION WHERE owned = 0 AND user = ?", (user.id,))
+        c.execute(f"SELECT fossil FROM COLLECTION WHERE owned = 0 AND user = ? {SORT_ALPHABETICAL}", (user.id,))
         missing = [row['fossil'] for row in c.fetchall()]
         return {'owned': owned, 'missing': missing}
 
@@ -232,7 +261,7 @@ class Fossil(commands.Cog):
                 else:
                     missing = " ".join([f"`{item}`" for item in result['missing']])
                     if len(result['owned']) == len(FOSSILS):
-                        await ctx.send(f"{user.mention} Owned: ALL fossils ({len(result['owned'])}")
+                        await ctx.send(f"{user.mention} Owned: ALL fossils ({len(result['owned'])})")
                     else:
                         await ctx.send(f"{user.mention} Owned: {len(result['owned'])} fossils. Missing: {missing}")
 
@@ -260,20 +289,14 @@ class Fossil(commands.Cog):
         collection_fossils = " ".join([f"`{f}`" for f in collection_list])
         invalid_fossils = " ".join([f"`{f}`" for f in invalid_list])
 
-        message = ""
-        valid = ""
+        message = f"{user.mention}, the following have been **added**:\n"
         if collection_fossils:
-            valid = f"{valid}  - Collection: {collection_fossils}\n"
+            message = f"{message}  - Collection: {collection_fossils}\n"
         if ft_fossils:
-            valid = f"{valid}  - For Trade: {ft_fossils}\n"
-        if valid:
-            message = f"{user.mention}, the following have been **added**:\n{valid}"
-
-        invalid = ""
+            message = f"{message}  - For Trade: {ft_fossils}\n"
         if invalid_fossils:
-            invalid = f"{invalid}  - Invalid: {invalid_fossils}\n"
-        if invalid:
-            message = f"{user.mention}, please double check these:\n{invalid}"
+            message = f"{message}  - Invalid: {invalid_fossils}\n"
+
         await ctx.send(message)
 
     @fossil.command(pass_context=True)
@@ -311,22 +334,16 @@ class Fossil(commands.Cog):
         invalid_fossils = " ".join([f"`{f}`" for f in invalid_list])
         none_list = " ".join([f"`{f}`" for f in none_list])
 
-        message = ""
-        valid = ""
+        message = f"{user.mention}, the following have been **removed**:\n"
         if collection_fossils:
-            valid = f"{valid}  - Collection: {collection_fossils}\n"
+            message = f"{message}  - Collection: {collection_fossils}\n"
         if ft_fossils:
-            valid = f"{valid}  - For Trade: {ft_fossils}\n"
-        if valid:
-            message = f"{user.mention}, the following have been **removed**:\n{valid}"
-
-        invalid = ""
-        if invalid_fossils:
-            invalid = f"{invalid}  - Invalid: {invalid_fossils}\n"
+            message = f"{message}  - For Trade: {ft_fossils}\n"
         if none_list:
-            invalid = f"{invalid}  - None: {none_list}\n"
-        if invalid:
-            message = f"{user.mention}, please double check these:\n{invalid}"
+            message = f"{message}  - Don't Have: {none_list}\n"
+        if invalid_fossils:
+            message = f"{message}  - Invalid: {invalid_fossils}\n"
+
         await ctx.send(message)
 
     @fossil.command(pass_context=True)
@@ -355,7 +372,7 @@ class Fossil(commands.Cog):
         for ft, users in fossils.items():
             message = f"{message}  - `{ft}`: {users}\n"
         if message:
-            await ctx.send(f"{user.mention}, send these residents a hoot for fossils you need!\n\n{message}")
+            await ctx.send(f"{user.mention}, send these residents a hoot for fossils you need!\n{message}")
         else:
             await ctx.send(f"{user.mention}, none of the fossils you need are available for trade.")
 
@@ -366,11 +383,11 @@ class Fossil(commands.Cog):
         with sqlite3.connect('fossils.db') as conn:
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
-            c.execute("SELECT quantity, fossil FROM FOR_TRADE WHERE user = ?", (user.id,))
+            c.execute(f"SELECT * FROM FOR_TRADE WHERE user = ? {SORT_ALPHABETICAL}", (user.id,))
             result = c.fetchall()
             if result:
                 fossils = "".join([f"  - `{row['fossil']}` **x{row['quantity']}**\n" for row in result])
-                await ctx.send(f"{user.mention}, these are your extra fossils:\n\n {fossils}")
+                await ctx.send(f"{user.mention}, these are your extra fossils:\n{fossils}")
             else:
                 await ctx.send(f"{user.mention}, you have no extra fossils listed for trade")
 
