@@ -13,6 +13,7 @@ FRUIT = {
 }
 
 COLOR = {
+    "black": discord.Color.black(),
     "blue": discord.Color.blue(),
     "gold": discord.Color.gold(),
     "green": discord.Color.green(),
@@ -235,7 +236,7 @@ class Passport(commands.Cog):
 
     @passport.command(pass_context=True)
     async def color(self, ctx, color):
-        """Set your passport color [blue, gold, green, magenta, orange, purple, red, teal]"""
+        """Set your passport color [black, blue, gold, green, magenta, orange, purple, red, teal]"""
         user = ctx.message.author
         formatted_color = set_color(user, color)
         if formatted_color:
