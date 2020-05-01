@@ -51,11 +51,10 @@ ART = ["academic painting",
        "valiant statue",
        "warrior statue"]
 
-SORT_ALPHABETICAL = """ORDER BY
+SORT_BY_TYPE = """ORDER BY
                             CASE 
-                                WHEN (art like 'left %') THEN SUBSTR(art, 6)
-                                WHEN (art like 'right %') THEN SUBSTR(art, 7)
-                                ELSE art 
+                                WHEN (art like '%statue') THEN 2
+                                ELSE 1
                             END"""
 
 
@@ -123,9 +122,9 @@ def get_collection(user):
     with sqlite3.connect('art.db') as conn:
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
-        c.execute(f"SELECT art FROM COLLECTION WHERE owned = 1 AND user = ? {SORT_ALPHABETICAL}", (user.id,))
+        c.execute(f"SELECT art FROM COLLECTION WHERE owned = 1 AND user = ? {SORT_BY_TYPE}", (user.id,))
         owned = [row['art'] for row in c.fetchall()]
-        c.execute(f"SELECT art FROM COLLECTION WHERE owned = 0 AND user = ? {SORT_ALPHABETICAL}", (user.id,))
+        c.execute(f"SELECT art FROM COLLECTION WHERE owned = 0 AND user = ? {SORT_BY_TYPE}", (user.id,))
         missing = [row['art'] for row in c.fetchall()]
         return {'owned': owned, 'missing': missing}
 
@@ -349,12 +348,12 @@ class Art(commands.Cog):
 
     @art.command(pass_context=True)
     async def ft(self, ctx):
-        """List of your extra art pieces"""
+        """List of your extra art pieces up for trade"""
         user = ctx.message.author
         with sqlite3.connect('art.db') as conn:
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
-            c.execute(f"SELECT * FROM FOR_TRADE WHERE user = ? {SORT_ALPHABETICAL}", (user.id,))
+            c.execute(f"SELECT * FROM FOR_TRADE WHERE user = ? {SORT_BY_TYPE}", (user.id,))
             result = c.fetchall()
             if result:
                 art = "".join([f"  - `{row['art']}` **x{row['quantity']}**\n" for row in result])
@@ -364,7 +363,7 @@ class Art(commands.Cog):
 
     @art.command(pass_context=True)
     async def list(self, ctx):
-        """List of all art pieces."""
+        """List of all art pieces in the game."""
         user = ctx.message.author
         arts = " ".join([f"`{art}`" for art in ART])
         await ctx.send(f"{user.mention}, here is the current list of art pieces.\n{arts}")
