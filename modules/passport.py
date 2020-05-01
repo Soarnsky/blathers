@@ -13,6 +13,7 @@ FRUIT = {
 }
 
 COLOR = {
+    "black": discord.Color(0),
     "blue": discord.Color.blue(),
     "gold": discord.Color.gold(),
     "green": discord.Color.green(),
