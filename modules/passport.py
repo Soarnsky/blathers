@@ -49,8 +49,13 @@ def create_passport_card(user):
         if passport['color']:
             embed.color = COLOR[passport['color']]  # change to new color if selected
 
-        if passport['fruit'] or passport['friendcode']:
-            embed.set_footer(text=passport['friendcode'], icon_url=FRUIT[passport['fruit']])
+        if passport['fruit'] or passport['friendcode'] or passport['nookexchange']:
+            #if passport['nookexchange']:
+            footer = f"{passport['friendcode']}\n + {passport['nookexchange']}"
+            embed.set_footer(text=footer, icon_url=FRUIT[passport['fruit']])
+
+        #if passport['nookexchange']:
+            #embed.url = [Nookexchange](https://nookexchange/u/ibeenjammin)
 
     embed.set_thumbnail(url=user.avatar_url_as(format="png"))
     if acnh_info:
@@ -149,6 +154,13 @@ def set_color(user, color):
         return norm_color
 
 
+def set_nex(user, username):
+    with sqlite3.connect('passports.db') as conn:
+        url = f"[nook.exchange](https://nook.exchange/u/{username})"
+        c = conn.cursor()
+        c.execute("UPDATE PASSPORT SET nookexchange = ? WHERE user = ?", (url, user.id))
+        conn.commit()
+
 def initialize_passport():
     with sqlite3.connect('passports.db') as conn:
         c = conn.cursor()
@@ -160,6 +172,7 @@ def initialize_passport():
                   island TEXT,
                   fruit TEXT,
                   friendcode TEXT,
+                  nookexchange TEXT,
                   color TEXT,
                   user TEXT NOT NULL)""")
             conn.commit()
@@ -243,6 +256,13 @@ class Passport(commands.Cog):
             await ctx.send(f"{user.mention}, your passport is now {formatted_color}")
         else:
             await ctx.send(f"Ah, {user.mention}. it seems '{color}' is not a valid color.")
+
+    @passport.command(pass_context=True)
+    async def nex(self, ctx, username):
+        """Set your nook.exchange user"""
+        user = ctx.message.author
+        set_nex(user, username)
+        await ctx.send(f"{user.mention}, your nook.exchange username has been set to {username}")
 
 
 def setup(client):
