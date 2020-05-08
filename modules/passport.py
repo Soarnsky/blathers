@@ -45,12 +45,21 @@ def create_passport_card(user):
             acnh_info = f"{acnh_info}**ign:** {passport['ign']}\n"
         if passport['island']:
             acnh_info = f"{acnh_info}**island:** {passport['island']}\n"
-
+        if passport['nookex']:
+            acnh_info = f"{acnh_info}{passport['nookex']}\n"
         if passport['color']:
             embed.color = COLOR[passport['color']]  # change to new color if selected
 
-        if passport['fruit'] or passport['friendcode']:
-            embed.set_footer(text=passport['friendcode'], icon_url=FRUIT[passport['fruit']])
+        fruit = passport.get('fruit', '')
+        fc = passport.get('friendcode', '')
+
+        if fruit and fc:
+            embed.set_footer(text=fc, icon_url=FRUIT[fruit])
+        elif fc:
+            embed.set_footer(text=fc)
+        elif fruit:
+            embed.set_footer(icon_url=FRUIT[fruit])
+
 
     embed.set_thumbnail(url=user.avatar_url_as(format="png"))
     if acnh_info:
@@ -66,7 +75,7 @@ def get_passport(user):
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         c.execute("SELECT * FROM PASSPORT WHERE user = ?", (user.id,))
-        passport = c.fetchone()
+        passport = dict(c.fetchone())
         return passport
 
 
@@ -149,6 +158,13 @@ def set_color(user, color):
         return norm_color
 
 
+def set_nex(user, username):
+    with sqlite3.connect('passports.db') as conn:
+        url = f"[nook.exchange](https://nook.exchange/u/{username})"
+        c = conn.cursor()
+        c.execute("UPDATE PASSPORT SET nookex = ? WHERE user = ?", (url, user.id))
+        conn.commit()
+
 def initialize_passport():
     with sqlite3.connect('passports.db') as conn:
         c = conn.cursor()
@@ -160,6 +176,7 @@ def initialize_passport():
                   island TEXT,
                   fruit TEXT,
                   friendcode TEXT,
+                  nookex TEXT,
                   color TEXT,
                   user TEXT NOT NULL)""")
             conn.commit()
@@ -205,14 +222,14 @@ class Passport(commands.Cog):
         """Set your ign"""
         user = ctx.message.author
         set_ign(user, name)
-        await ctx.send(f"{user.mention}, your ign has been set to {name}")
+        await ctx.send(f"{user.mention}, your ign has been set to `{name}`")
 
     @passport.command(pass_context=True)
     async def island(self, ctx, *, name):
         """Set your island name"""
         user = ctx.message.author
         set_island(user, name)
-        await ctx.send(f"{user.mention}, your residency has been set to {name}")
+        await ctx.send(f"{user.mention}, your residency has been set to `{name}`")
 
     @passport.command(pass_context=True)
     async def fruit(self, ctx, fruit):
@@ -220,9 +237,9 @@ class Passport(commands.Cog):
         user = ctx.message.author
         formatted_fruit = set_fruit(user, fruit)
         if formatted_fruit:
-            await ctx.send(f"{user.mention}, your native fruit has been set to {formatted_fruit}")
+            await ctx.send(f"{user.mention}, your native fruit has been set to `{formatted_fruit}`")
         else:
-            await ctx.send(f"Sorry {user.mention}, {fruit} is not a valid fruit.")
+            await ctx.send(f"Sorry {user.mention}, `{fruit}` is not a valid fruit.")
 
     @passport.command(pass_context=True)
     async def fc(self, ctx, fc):
@@ -230,9 +247,9 @@ class Passport(commands.Cog):
         user = ctx.message.author
         hyphened_fc = set_friend_code(user, fc)
         if hyphened_fc:
-            await ctx.send(f"{user.mention}, your friend code has been set to {hyphened_fc}")
+            await ctx.send(f"{user.mention}, your friend code has been set to `{hyphened_fc}`")
         else:
-            await ctx.send(f"Ah, {user.mention}. it seems '{fc}' is not a valid code.")
+            await ctx.send(f"Ah, {user.mention}. it seems `{fc}` is not a valid code.")
 
     @passport.command(pass_context=True)
     async def color(self, ctx, color):
@@ -240,9 +257,16 @@ class Passport(commands.Cog):
         user = ctx.message.author
         formatted_color = set_color(user, color)
         if formatted_color:
-            await ctx.send(f"{user.mention}, your passport is now {formatted_color}")
+            await ctx.send(f"{user.mention}, your passport is now `{formatted_color}`")
         else:
-            await ctx.send(f"Ah, {user.mention}. it seems '{color}' is not a valid color.")
+            await ctx.send(f"Ah, {user.mention}. it seems `{color}` is not a valid color.")
+
+    @passport.command(pass_context=True)
+    async def nex(self, ctx, username):
+        """Set your nook.exchange username to generate a link to your profile"""
+        user = ctx.message.author
+        set_nex(user, username)
+        await ctx.send(f"{user.mention}, your nook.exchange username has been set to `{username}`")
 
 
 def setup(client):
