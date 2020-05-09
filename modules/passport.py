@@ -170,9 +170,7 @@ def initialize_passport():
         c = conn.cursor()
         c.execute("SELECT NAME FROM sqlite_master WHERE type = \"table\" AND name = \"PASSPORT\"")
 
-        print("yeet")
         if not c.fetchall():
-            print("haw")
             c.execute("""CREATE TABLE IF NOT EXISTS PASSPORT
                   (id INTEGER PRIMARY KEY AUTOINCREMENT,
                   ign TEXT,
