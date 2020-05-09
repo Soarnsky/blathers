@@ -169,7 +169,10 @@ def initialize_passport():
     with sqlite3.connect('passports.db') as conn:
         c = conn.cursor()
         c.execute("SELECT NAME FROM sqlite_master WHERE type = \"table\" AND name = \"PASSPORT\"")
+
+        print("yeet")
         if not c.fetchall():
+            print("haw")
             c.execute("""CREATE TABLE IF NOT EXISTS PASSPORT
                   (id INTEGER PRIMARY KEY AUTOINCREMENT,
                   ign TEXT,
@@ -181,6 +184,15 @@ def initialize_passport():
                   user TEXT NOT NULL)""")
             conn.commit()
 
+        try:
+            c.execute("ALTER TABLE PASSPORT ADD COLUMN nookex TEXT")
+        except sqlite3.OperationalError:
+            print("did not add nookex")
+        except Exception as e:
+            print(e)
+        else:
+            print("added nookex")
+            conn.commit()
 
 class Passport(commands.Cog):
     """
