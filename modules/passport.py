@@ -47,6 +47,8 @@ def create_passport_card(user):
             acnh_info = f"{acnh_info}**island:** {passport['island']}\n"
         if passport['nookex']:
             acnh_info = f"{acnh_info}{passport['nookex']}\n"
+#        if passport['info']:
+#            acnh_info = f"{acnh_info}{passport['info']}\n"
         if passport['color']:
             embed.color = COLOR[passport['color']]  # change to new color if selected
 
@@ -64,8 +66,10 @@ def create_passport_card(user):
     embed.set_thumbnail(url=user.avatar_url_as(format="png"))
     if acnh_info:
         embed.add_field(name="__**ACNH INFO**__", value=acnh_info)
+    if passport['info']:
+        info = f"```fix\n{passport['info']}\n```\n"
     embed.add_field(name="__**SQUAD INFO**__",
-                    value=f"**name:** {user.display_name}\n**joined:** {user.joined_at.__format__('%d %b %y')}")
+                    value=f"**name:** {user.display_name}\n**joined:** {user.joined_at.__format__('%d %b %y')}\n{info}")
 
     return embed
 
@@ -165,6 +169,14 @@ def set_nex(user, username):
         c.execute("UPDATE PASSPORT SET nookex = ? WHERE user = ?", (url, user.id))
         conn.commit()
 
+
+def set_info(user, info):
+    with sqlite3.connect('passports.db') as conn:
+        c = conn.cursor()
+        c.execute("UPDATE PASSPORT SET info = ? WHERE user = ?", (info, user.id))
+        conn.commit()
+
+
 def initialize_passport():
     with sqlite3.connect('passports.db') as conn:
         c = conn.cursor()
@@ -178,18 +190,19 @@ def initialize_passport():
                   fruit TEXT,
                   friendcode TEXT,
                   nookex TEXT,
+                  info TEXT
                   color TEXT,
                   user TEXT NOT NULL)""")
             conn.commit()
 
         try:
-            c.execute("ALTER TABLE PASSPORT ADD COLUMN nookex TEXT")
+            c.execute("ALTER TABLE PASSPORT ADD COLUMN info TEXT")
         except sqlite3.OperationalError:
-            print("did not add nookex")
+            print("did not add info")
         except Exception as e:
             print(e)
         else:
-            print("added nookex")
+            print("added info")
             conn.commit()
 
 class Passport(commands.Cog):
@@ -277,6 +290,13 @@ class Passport(commands.Cog):
         user = ctx.message.author
         set_nex(user, username)
         await ctx.send(f"{user.mention}, your nook.exchange username has been set to `{username}`")
+
+    @passport.command(pass_context=True)
+    async def info(self, ctx, *, info):
+        """Write a message to be displayed on your passport."""
+        user = ctx.message.author
+        set_info(user, info)
+        await ctx.send(f"{user.mention}, your message has been set to `{info}`")
 
 
 def setup(client):
