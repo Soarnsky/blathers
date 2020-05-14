@@ -24,6 +24,7 @@ COLOR = {
     "teal": discord.Color.teal()
 }
 
+MAX_INFO_LEN = 100
 
 def create_passport_card(user):
     """
@@ -239,24 +240,23 @@ class Passport(commands.Cog):
         passport = create_passport_card(user)
         await ctx.send(embed=passport)
 
-    # New Commands start here
     @passport.command(pass_context=True)
     async def ign(self, ctx, *, name):
-        """Set your ign"""
+        """Set your ign."""
         user = ctx.message.author
         set_ign(user, name)
         await ctx.send(f"{user.mention}, your ign has been set to `{name}`")
 
     @passport.command(pass_context=True)
     async def island(self, ctx, *, name):
-        """Set your island name"""
+        """Set your island name."""
         user = ctx.message.author
         set_island(user, name)
         await ctx.send(f"{user.mention}, your residency has been set to `{name}`")
 
     @passport.command(pass_context=True)
     async def fruit(self, ctx, fruit):
-        """Set your native fruit"""
+        """Set your native fruit."""
         user = ctx.message.author
         formatted_fruit = set_fruit(user, fruit)
         if formatted_fruit:
@@ -266,7 +266,7 @@ class Passport(commands.Cog):
 
     @passport.command(pass_context=True)
     async def fc(self, ctx, fc):
-        """Set your friend code"""
+        """Set your friend code."""
         user = ctx.message.author
         hyphened_fc = set_friend_code(user, fc)
         if hyphened_fc:
@@ -276,7 +276,7 @@ class Passport(commands.Cog):
 
     @passport.command(pass_context=True)
     async def color(self, ctx, color):
-        """Set your passport color [blue, gold, green, magenta, orange, purple, red, teal]"""
+        """Set your passport color. See #bot-commands pinned message for colors."""
         user = ctx.message.author
         formatted_color = set_color(user, color)
         if formatted_color:
@@ -286,7 +286,7 @@ class Passport(commands.Cog):
 
     @passport.command(pass_context=True)
     async def nex(self, ctx, username):
-        """Set your nook.exchange username to generate a link to your profile"""
+        """Set your nook.exchange username to generate a link to your profile."""
         user = ctx.message.author
         set_nex(user, username)
         await ctx.send(f"{user.mention}, your nook.exchange username has been set to `{username}`")
@@ -295,8 +295,9 @@ class Passport(commands.Cog):
     async def info(self, ctx, *, info):
         """Write a message to be displayed on your passport."""
         user = ctx.message.author
-        set_info(user, info)
-        await ctx.send(f"{user.mention}, your message has been set to `{info}`")
+        short_info = (info[:MAX_INFO_LEN] + '..') if len(info) > MAX_INFO_LEN else info
+        set_info(user, short_info)
+        await ctx.send(f"{user.mention}, your message has been set to `{short_info}`")
 
 
 def setup(client):
