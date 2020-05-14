@@ -33,6 +33,7 @@ def create_passport_card(user):
   """
 
     acnh_info = ""
+    info = ""
     passport = get_passport(user)
 
     embed = discord.Embed(
@@ -60,14 +61,14 @@ def create_passport_card(user):
         elif fc:
             embed.set_footer(text=fc)
         elif fruit:
-            embed.set_footer(icon_url=FRUIT[fruit])
+            embed.set_footer(text="FC not set", icon_url=FRUIT[fruit])
 
 
     embed.set_thumbnail(url=user.avatar_url_as(format="png"))
     if acnh_info:
         embed.add_field(name="__**ACNH INFO**__", value=acnh_info)
     if passport['info']:
-        info = f"```fix\n{passport['info']}\n```\n"
+        info = f"\n{passport['info']}\n"
     embed.add_field(name="__**SQUAD INFO**__",
                     value=f"**name:** {user.display_name}\n**joined:** {user.joined_at.__format__('%d %b %y')}\n{info}")
 
@@ -190,19 +191,18 @@ def initialize_passport():
                   fruit TEXT,
                   friendcode TEXT,
                   nookex TEXT,
-                  info TEXT
+                  info TEXT,
                   color TEXT,
                   user TEXT NOT NULL)""")
             conn.commit()
 
+        #remove this block after running once
         try:
             c.execute("ALTER TABLE PASSPORT ADD COLUMN info TEXT")
         except sqlite3.OperationalError:
-            print("did not add info")
-        except Exception as e:
-            print(e)
+            print("did not add info column")
         else:
-            print("added info")
+            print("added info column")
             conn.commit()
 
 class Passport(commands.Cog):
