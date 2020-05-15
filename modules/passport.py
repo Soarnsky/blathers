@@ -69,9 +69,9 @@ def create_passport_card(user):
     if acnh_info:
         embed.add_field(name="__**ACNH INFO**__", value=acnh_info)
     if passport['info']:
-        info = f"\n{passport['info']}\n"
+        info = f"\n{passport['info']}"
     embed.add_field(name="__**SQUAD INFO**__",
-                    value=f"**name:** {user.display_name}\n**joined:** {user.joined_at.__format__('%d %b %y')}\n{info}")
+                    value=f"**name:** {user.display_name}\n**joined:** {user.joined_at.__format__('%d %b %y')}{info}")
 
     return embed
 
