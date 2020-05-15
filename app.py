@@ -1,10 +1,15 @@
 import discord
 from discord.ext import commands
+import os
 import asyncio
 import json
 import datetime
 import logging
 import re
+import threading
+import schedule
+
+from modules.turnip import reset_turnips
 
 with open('./config.json', 'r') as cjson:
     config = json.load(cjson)
@@ -33,6 +38,18 @@ def timedelta_str(dt):
         return '{0} days, {1} hours, {2} minute and {3} seconds.'.format(days, hours, minutes, sec)
     else:
         return '{0} days, {1} hours, {2} minutes and {3} seconds.'.format(days, hours, minutes, sec)
+
+
+def threaded(func):
+    job_thread = threading.Thread(target=func)
+    job_thread.start()
+
+
+async def background_tasks():
+    await client.wait_until_ready()
+    schedule.every().sunday.at("01:00").do(threaded, reset_turnips(f"{os.getcwd()}/turnips.db"))
+    while not client.is_closed:
+        schedule.run_pending()
 
 
 @client.event

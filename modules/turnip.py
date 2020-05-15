@@ -1,3 +1,4 @@
+import os
 import string
 import sqlite3
 
@@ -104,6 +105,12 @@ def initialize_turnips():
                         sat_pm INTEGER,
                         user TEXT NOT NULL)""")
         conn.commit()
+
+
+def reset_turnips(turnip_db):
+    if os.path.exists(turnip_db):
+        os.remove(turnip_db)
+    initialize_turnips()
 
 
 class Turnip(commands.Cog):

@@ -64,7 +64,6 @@ def create_passport_card(user):
         elif fruit:
             embed.set_footer(text="FC not set", icon_url=FRUIT[fruit])
 
-
     embed.set_thumbnail(url=user.avatar_url_as(format="png"))
     if acnh_info:
         embed.add_field(name="__**ACNH INFO**__", value=acnh_info)
