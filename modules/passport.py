@@ -24,6 +24,7 @@ COLOR = {
     "teal": discord.Color.teal()
 }
 
+MAX_INFO_LEN = 100
 
 def create_passport_card(user):
     """
@@ -33,6 +34,7 @@ def create_passport_card(user):
   """
 
     acnh_info = ""
+    info = ""
     passport = get_passport(user)
 
     embed = discord.Embed(
@@ -47,6 +49,8 @@ def create_passport_card(user):
             acnh_info = f"{acnh_info}**island:** {passport['island']}\n"
         if passport['nookex']:
             acnh_info = f"{acnh_info}{passport['nookex']}\n"
+#        if passport['info']:
+#            acnh_info = f"{acnh_info}{passport['info']}\n"
         if passport['color']:
             embed.color = COLOR[passport['color']]  # change to new color if selected
 
@@ -58,14 +62,16 @@ def create_passport_card(user):
         elif fc:
             embed.set_footer(text=fc)
         elif fruit:
-            embed.set_footer(icon_url=FRUIT[fruit])
+            embed.set_footer(text="FC not set", icon_url=FRUIT[fruit])
 
 
     embed.set_thumbnail(url=user.avatar_url_as(format="png"))
     if acnh_info:
         embed.add_field(name="__**ACNH INFO**__", value=acnh_info)
+    if passport['info']:
+        info = f"\n{passport['info']}\n"
     embed.add_field(name="__**SQUAD INFO**__",
-                    value=f"**name:** {user.display_name}\n**joined:** {user.joined_at.__format__('%d %b %y')}")
+                    value=f"**name:** {user.display_name}\n**joined:** {user.joined_at.__format__('%d %b %y')}\n{info}")
 
     return embed
 
@@ -165,10 +171,19 @@ def set_nex(user, username):
         c.execute("UPDATE PASSPORT SET nookex = ? WHERE user = ?", (url, user.id))
         conn.commit()
 
+
+def set_info(user, info):
+    with sqlite3.connect('passports.db') as conn:
+        c = conn.cursor()
+        c.execute("UPDATE PASSPORT SET info = ? WHERE user = ?", (info, user.id))
+        conn.commit()
+
+
 def initialize_passport():
     with sqlite3.connect('passports.db') as conn:
         c = conn.cursor()
         c.execute("SELECT NAME FROM sqlite_master WHERE type = \"table\" AND name = \"PASSPORT\"")
+
         if not c.fetchall():
             c.execute("""CREATE TABLE IF NOT EXISTS PASSPORT
                   (id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -177,10 +192,19 @@ def initialize_passport():
                   fruit TEXT,
                   friendcode TEXT,
                   nookex TEXT,
+                  info TEXT,
                   color TEXT,
                   user TEXT NOT NULL)""")
             conn.commit()
 
+        #remove this block after running once
+        try:
+            c.execute("ALTER TABLE PASSPORT ADD COLUMN info TEXT")
+        except sqlite3.OperationalError:
+            print("did not add info column")
+        else:
+            print("added info column")
+            conn.commit()
 
 class Passport(commands.Cog):
     """
@@ -216,24 +240,23 @@ class Passport(commands.Cog):
         passport = create_passport_card(user)
         await ctx.send(embed=passport)
 
-    # New Commands start here
     @passport.command(pass_context=True)
     async def ign(self, ctx, *, name):
-        """Set your ign"""
+        """Set your ign."""
         user = ctx.message.author
         set_ign(user, name)
         await ctx.send(f"{user.mention}, your ign has been set to `{name}`")
 
     @passport.command(pass_context=True)
     async def island(self, ctx, *, name):
-        """Set your island name"""
+        """Set your island name."""
         user = ctx.message.author
         set_island(user, name)
         await ctx.send(f"{user.mention}, your residency has been set to `{name}`")
 
     @passport.command(pass_context=True)
     async def fruit(self, ctx, fruit):
-        """Set your native fruit"""
+        """Set your native fruit."""
         user = ctx.message.author
         formatted_fruit = set_fruit(user, fruit)
         if formatted_fruit:
@@ -243,7 +266,7 @@ class Passport(commands.Cog):
 
     @passport.command(pass_context=True)
     async def fc(self, ctx, fc):
-        """Set your friend code"""
+        """Set your friend code."""
         user = ctx.message.author
         hyphened_fc = set_friend_code(user, fc)
         if hyphened_fc:
@@ -253,7 +276,7 @@ class Passport(commands.Cog):
 
     @passport.command(pass_context=True)
     async def color(self, ctx, color):
-        """Set your passport color [blue, gold, green, magenta, orange, purple, red, teal]"""
+        """Set your passport color. See #bot-commands pinned message for colors."""
         user = ctx.message.author
         formatted_color = set_color(user, color)
         if formatted_color:
@@ -263,10 +286,18 @@ class Passport(commands.Cog):
 
     @passport.command(pass_context=True)
     async def nex(self, ctx, username):
-        """Set your nook.exchange username to generate a link to your profile"""
+        """Set your nook.exchange username to generate a link to your profile."""
         user = ctx.message.author
         set_nex(user, username)
         await ctx.send(f"{user.mention}, your nook.exchange username has been set to `{username}`")
+
+    @passport.command(pass_context=True)
+    async def info(self, ctx, *, info):
+        """Write a message to be displayed on your passport."""
+        user = ctx.message.author
+        short_info = (info[:MAX_INFO_LEN] + '..') if len(info) > MAX_INFO_LEN else info
+        set_info(user, short_info)
+        await ctx.send(f"{user.mention}, your message has been set to `{short_info}`")
 
 
 def setup(client):
