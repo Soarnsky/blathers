@@ -2,7 +2,9 @@ import os
 import string
 import sqlite3
 
-from discord.ext import commands
+from datetime import datetime
+
+from discord.ext import commands, tasks
 from modules import prediction
 
 DAYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"]
@@ -122,6 +124,14 @@ class Turnip(commands.Cog):
         self.client = client
         self.config = config
         initialize_turnips()
+        self.weekly_reset_turnips.start()
+
+    @tasks.loop(hours=1)
+    async def weekly_reset_turnips(self):
+        now = datetime.now()
+        if now.weekday() == 6 and now.hour == 0:
+            reset_turnips(f"{os.getcwd()}/turnips.db")
+            print("Successfully reset turnips!")
 
     @commands.group(pass_context=True, aliases=['t'])
     async def turnip(self, ctx):

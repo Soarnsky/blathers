@@ -6,14 +6,9 @@ import json
 import datetime
 import logging
 import re
-import threading
-import schedule
-
-from modules.turnip import reset_turnips
 
 with open('./config.json', 'r') as cjson:
     config = json.load(cjson)
-
 
 desc = ''' '''
 prefix = config["cmd_prefix"]
@@ -40,18 +35,6 @@ def timedelta_str(dt):
         return '{0} days, {1} hours, {2} minutes and {3} seconds.'.format(days, hours, minutes, sec)
 
 
-def threaded(func):
-    job_thread = threading.Thread(target=func)
-    job_thread.start()
-
-
-async def background_tasks():
-    await client.wait_until_ready()
-    schedule.every().sunday.at("01:00").do(threaded, reset_turnips(f"{os.getcwd()}/turnips.db"))
-    while not client.is_closed:
-        schedule.run_pending()
-
-
 @client.event
 async def on_command_error(ctx, exception):
     logging.basicConfig(level=logging.WARNING, filename="error.log", filemode="a+",
@@ -75,6 +58,7 @@ async def on_ready():
     print('ID -> ' + str(client.user.id))
     print('Admin Users -> ' + str(config['owner_ids']))
     print('Command prefix -> ' + prefix)
+
 
 
 @client.command()
